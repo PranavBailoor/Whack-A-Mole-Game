@@ -7,3 +7,9 @@ The requirements of the game were:
 - at least one abstract class(es)
 - use of files and GUI design
 
+**What Changed:**These are some of the changes I made to the original code that was generated to create the final version of this project.
+- changed UI layout and design
+- improved game logic/smooth animation
+- added bomb component
+- fixed global mouseListener bug
+- leaderboard feature(local)
