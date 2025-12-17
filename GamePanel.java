@@ -77,11 +77,47 @@ public class GamePanel extends JPanel {
         
         startButton = new JButton("Start Game");
         startButton.setBounds(520, 20, 120, 40);
+        // avoid showing focus/rollover visuals when clicking elsewhere on the panel
+        startButton.setFocusable(false);
+        startButton.setRequestFocusEnabled(false);
+        startButton.setFocusPainted(false);
+        startButton.setRolloverEnabled(false);
+        // don't draw the border by default (prevents accidental border when the panel is clicked)
+        startButton.setBorderPainted(false);
+        // show border only while the button is actually pressed by the user
+        startButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                startButton.setBorderPainted(true);
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                startButton.setBorderPainted(false);
+            }
+        });
         startButton.addActionListener(e -> startGame());
         add(startButton);
         
         stopButton = new JButton("Stop Game");
         stopButton.setBounds(660, 20, 120, 40);
+        // avoid showing focus/rollover visuals when clicking elsewhere on the panel
+        stopButton.setFocusable(false);
+        stopButton.setRequestFocusEnabled(false);
+        stopButton.setFocusPainted(false);
+        stopButton.setRolloverEnabled(false);
+        // don't draw the border by default (prevents accidental border when the panel is clicked)
+        stopButton.setBorderPainted(false);
+        // show border only while the button is actually pressed by the user
+        stopButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                stopButton.setBorderPainted(true);
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                stopButton.setBorderPainted(false);
+            }
+        });
         stopButton.setEnabled(false);
         stopButton.addActionListener(e -> stopGame());
         add(stopButton);
@@ -89,11 +125,16 @@ public class GamePanel extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                // ignore clicks that occur on the control buttons so they continue to behave normally
+                Point p = e.getPoint();
+                if (startButton.getBounds().contains(p) || stopButton.getBounds().contains(p)) {
+                    return; // let the button handle it
+                }
                 if (gameRunning) {
                     boolean hitAny = false;
                     // Check moles first (positive targets)
                     for (Mole mole : moles) {
-                        if (mole.contains(e.getPoint())) {
+                        if (mole.contains(p)) {
                             if (mole.hit()) {
                                 score += 10;
                                 scoreLabel.setText("Score: " + score);
@@ -103,7 +144,7 @@ public class GamePanel extends JPanel {
                     }
                     // Then check bombs (penalties)
                     for (Bomb bomb : bombs) {
-                        if (bomb.contains(e.getPoint())) {
+                        if (bomb.contains(p)) {
                             if (bomb.hit()) {
                                 score = Math.max(0, score - 20);
                                 scoreLabel.setText("Score: " + score);
@@ -111,7 +152,36 @@ public class GamePanel extends JPanel {
                             }
                         }
                     }
-                    if (hitAny) triggerMallet(e.getX(), e.getY());
+                    if (hitAny) {
+                        triggerMallet(p.x, p.y);
+                        // clear any pressed/armed state on control buttons so they don't show a press animation
+                        if (startButton != null && startButton.getModel() != null) {
+                            startButton.getModel().setArmed(false);
+                            startButton.getModel().setPressed(false);
+                            startButton.getModel().setRollover(false);
+                        }
+                        if (stopButton != null && stopButton.getModel() != null) {
+                            stopButton.getModel().setArmed(false);
+                            stopButton.getModel().setPressed(false);
+                            stopButton.getModel().setRollover(false);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                // When releasing anywhere on the panel (outside buttons), ensure buttons don't remain visually pressed
+                Point p = e.getPoint();
+                if (!startButton.getBounds().contains(p) && startButton.getModel() != null) {
+                    startButton.getModel().setArmed(false);
+                    startButton.getModel().setPressed(false);
+                    startButton.getModel().setRollover(false);
+                }
+                if (!stopButton.getBounds().contains(p) && stopButton.getModel() != null) {
+                    stopButton.getModel().setArmed(false);
+                    stopButton.getModel().setPressed(false);
+                    stopButton.getModel().setRollover(false);
                 }
             }
         });
